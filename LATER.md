@@ -27,6 +27,20 @@ ever worth doing, it is a *different* artifact, not a change to this one.
 - MCP or tool use
 - Monetization
 
+## Post-v1 features we already know we want
+
+Not in the six-theme scope, but decided as genuine future work (distinct from
+the permanent non-goals above):
+
+- **Anthropic model selector.** A picker to switch between Anthropic models
+  (Opus / Sonnet / Haiku) per thread or per canvas — a nice interaction
+  opportunity and a natural bit of chrome. **This is not multi-provider
+  support** (which stays a permanent non-goal): it selects among Anthropic
+  models only, so it sits comfortably inside the scope contract. The v1 build
+  leaves a one-line hook for it — `streamMessage` accepts an optional `model`
+  that defaults to `DEFAULT_MODEL` — so adding the selector later is a UI
+  addition, not a refactor.
+
 ## Density overflow (capped at its week)
 
 The density theme is one week. Anything past that cap parks here rather than
