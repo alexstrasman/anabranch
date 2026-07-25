@@ -1,3 +1,9 @@
+import { useEffect } from 'react'
+import { useStore } from './state/store'
+import { CanvasView } from './canvas/CanvasView'
+
 export default function App() {
-  return <div>Tangent</div>
+  const initCanvas = useStore((s) => s.initCanvas)
+  useEffect(() => { initCanvas() }, [initCanvas])
+  return <CanvasView />
 }
