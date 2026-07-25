@@ -10,6 +10,10 @@ import { streamMessage } from '../api/anthropic'
 
 const newId = (prefix: string) => `${prefix}_${crypto.randomUUID()}`
 
+// Vertical gap between sibling branches off the same parent. Roughly a node's
+// height, so two branches from one thread read as two nodes rather than one.
+const SIBLING_OFFSET_Y = 260
+
 interface StoreState {
   canvas: Canvas
   apiKey: string | null
@@ -91,7 +95,15 @@ export const useStore = create<StoreState>((set, get) => ({
   branch: (parentThreadId, branchPointMessageId, quotedText = null) => {
     const id = newId('thread')
     const parent = getThread(get().canvas, parentThreadId)
-    const position = { x: parent.position.x + 420, y: parent.position.y + 60 }
+    // Stagger by how many children this parent already has. Without it every
+    // branch off one thread lands on identical coordinates and the second sits
+    // exactly on top of the first — same size, same position, visually one node.
+    // Deliberately just arithmetic: real auto-tidy layout is Task 21's job.
+    const siblings = get().canvas.threads.filter((t) => t.parentId === parentThreadId).length
+    const position = {
+      x: parent.position.x + 420,
+      y: parent.position.y + 60 + siblings * SIBLING_OFFSET_Y,
+    }
     commit(set, branchFromMessage(get().canvas, parentThreadId, branchPointMessageId, id, position, quotedText))
     return id
   },
