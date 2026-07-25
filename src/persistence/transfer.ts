@@ -1,37 +1,14 @@
-import type { Canvas, Thread } from '../domain/types'
-import { CANVAS_VERSION } from '../domain/types'
+import type { Canvas } from '../domain/types'
+import { validateCanvas } from './validate'
 
 export function exportCanvas(canvas: Canvas): string {
   return JSON.stringify(canvas, null, 2)
 }
 
+/**
+ * Throws on anything that isn't a canvas we can render — the user picked this
+ * file, so they get to hear why it was rejected.
+ */
 export function importCanvas(json: string): Canvas {
-  const parsed = JSON.parse(json) as unknown
-  if (typeof parsed !== 'object' || parsed === null) {
-    throw new Error('Invalid canvas: not an object')
-  }
-  const candidate = parsed as Record<string, unknown>
-  if (candidate.version !== CANVAS_VERSION) {
-    throw new Error(`Unsupported canvas version: ${String(candidate.version)}`)
-  }
-  if (!Array.isArray(candidate.threads)) {
-    throw new Error('Invalid canvas: threads must be an array')
-  }
-  candidate.threads.forEach(validateThread)
-  return parsed as Canvas
-}
-
-function validateThread(t: unknown): asserts t is Thread {
-  const o = t as Record<string, unknown>
-  const ok =
-    o &&
-    typeof o.id === 'string' &&
-    (o.parentId === null || typeof o.parentId === 'string') &&
-    (o.branchPointMessageId === null || typeof o.branchPointMessageId === 'string') &&
-    (o.quotedText === null || typeof o.quotedText === 'string') &&
-    (o.title === null || typeof o.title === 'string') &&
-    typeof o.collapsed === 'boolean' &&
-    Array.isArray(o.messages) &&
-    typeof o.position === 'object' && o.position !== null
-  if (!ok) throw new Error(`Invalid thread: ${JSON.stringify(t)}`)
+  return validateCanvas(JSON.parse(json))
 }

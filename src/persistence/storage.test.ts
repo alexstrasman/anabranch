@@ -17,6 +17,25 @@ describe('canvas persistence', () => {
     localStorage.setItem('tangent:canvas:v1', '{not json')
     expect(loadCanvas()).toBeNull()
   })
+  // Well-formed JSON of the wrong shape used to load fine and then blow up in
+  // CanvasView on `canvas.threads.map` — a white screen on every reload with no
+  // in-app way out. loadCanvas validates, so it degrades to a fresh canvas.
+  it('returns null on valid JSON with the wrong shape', () => {
+    localStorage.setItem('tangent:canvas:v1', JSON.stringify({ version: 1 })) // no threads
+    expect(loadCanvas()).toBeNull()
+  })
+  it('returns null on an unknown version', () => {
+    localStorage.setItem('tangent:canvas:v1', JSON.stringify({ version: 99, threads: [] }))
+    expect(loadCanvas()).toBeNull()
+  })
+  it('returns null on a thread missing required fields', () => {
+    localStorage.setItem('tangent:canvas:v1', JSON.stringify({ version: 1, threads: [{ id: 'x' }] }))
+    expect(loadCanvas()).toBeNull()
+  })
+  it('returns null on a JSON scalar', () => {
+    localStorage.setItem('tangent:canvas:v1', '42')
+    expect(loadCanvas()).toBeNull()
+  })
 })
 
 describe('api key persistence', () => {
