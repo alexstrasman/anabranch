@@ -132,9 +132,18 @@ export const useStore = create<StoreState>((set, get) => ({
     }
 
     try {
-      // Assemble BEFORE the placeholder exists, so the empty assistant message
-      // is never part of the payload.
-      const context = assembleContext(get().canvas, threadId)
+      // Assemble BEFORE the placeholder exists, and from the FILTERED canvas.
+      // Both halves matter. The ordering keeps this send's own placeholder out
+      // of the payload; the pruning keeps out any zero-length assistant message
+      // left in memory by an EARLIER failed send in this thread. Those exist:
+      // a stream that errors before the first token leaves
+      // {role:'assistant', content:'', error:'…'} behind, and the error now
+      // lives beside the content rather than in it (I7), so nothing pads it out.
+      // Unfiltered, the retry would send a mid-conversation empty-content
+      // message, get a 400, and leave another one — wedging the thread until
+      // reload. Filtering here rather than in the canvas keeps the message
+      // rendering in the UI.
+      const context = assembleContext(withoutEmptyAssistantMessages(get().canvas), threadId)
       const id = get().startAssistantMessage(threadId)
       assistantId = id
       await streamMessage(
