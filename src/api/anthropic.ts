@@ -76,10 +76,15 @@ export async function streamMessage(
     // The connection ended without a terminal event. Flush the decoder's held
     // multi-byte remainder, then the trailing partial line, before deciding.
     buffer += decoder.decode()
-    if (buffer.trim() && dispatch([buffer]) === 'none') {
+    if (buffer.trim()) {
+      const result = dispatch([buffer])
+      // dispatch already fired the single terminating handler.
+      if (result === 'terminal') return
       // Leftover bytes that parsed into nothing: a half-written SSE frame.
-      handlers.onError('The response was cut off before it finished. Try sending it again.')
-      return
+      if (result === 'none') {
+        handlers.onError('The response was cut off before it finished. Try sending it again.')
+        return
+      }
     }
     handlers.onDone()
   } catch (err) {
