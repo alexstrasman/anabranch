@@ -54,6 +54,29 @@ export function branchFromMessage(
   return { ...canvas, threads: [...canvas.threads, child] }
 }
 
+/**
+ * Strips assistant messages with zero-length content.
+ *
+ * A persisted `{role:'assistant', content:''}` is not cosmetic — the Anthropic
+ * API rejects a mid-conversation message with empty content (400: all messages
+ * must have non-empty content except the optional final assistant message), so
+ * assembleContext would produce a payload that fails on every subsequent send
+ * in that thread. Phase A has no delete-message affordance, so the thread —
+ * and if it is the root, the whole canvas — would be unusable forever.
+ *
+ * Applied on the way to storage only. In memory the empty placeholder must
+ * survive so the user sees the assistant turn appear the moment they hit send.
+ */
+export function withoutEmptyAssistantMessages(canvas: Canvas): Canvas {
+  return {
+    ...canvas,
+    threads: canvas.threads.map((t) => ({
+      ...t,
+      messages: t.messages.filter((m) => !(m.role === 'assistant' && m.content.length === 0)),
+    })),
+  }
+}
+
 export function moveThread(
   canvas: Canvas, threadId: string, position: { x: number; y: number },
 ): Canvas {

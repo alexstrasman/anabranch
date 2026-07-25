@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import type { Canvas } from '../domain/types'
-import { emptyCanvas, appendMessage, replaceMessage, branchFromMessage, moveThread } from '../domain/thread'
+import {
+  emptyCanvas, appendMessage, replaceMessage, branchFromMessage, moveThread,
+  setMessageError, withoutEmptyAssistantMessages,
+} from '../domain/thread'
 import { assembleContext, getThread } from '../domain/context'
 import { saveCanvas, loadCanvas, saveApiKey, loadApiKey, clearApiKey } from '../persistence/storage'
 import { streamMessage } from '../api/anthropic'
@@ -16,6 +19,7 @@ interface StoreState {
   addUserMessage: (threadId: string, content: string) => string
   startAssistantMessage: (threadId: string) => string
   appendToMessage: (threadId: string, messageId: string, delta: string) => void
+  failMessage: (threadId: string, messageId: string, error: string) => void
   branch: (parentThreadId: string, branchPointMessageId: string, quotedText?: string | null) => string
   moveThreadTo: (threadId: string, position: { x: number; y: number }) => void
   sendMessage: (threadId: string, content: string) => Promise<void>
@@ -23,9 +27,15 @@ interface StoreState {
 }
 
 // Persists to localStorage and updates state. Use for every mutating action
-// EXCEPT the streaming accumulator below.
+// EXCEPT the streaming accumulator and the assistant placeholder below.
+//
+// What reaches storage is filtered: a zero-length assistant message is dropped
+// before the write. The in-memory canvas keeps it, so the placeholder still
+// renders — but it can never be persisted, from this path or any other, and so
+// can never come back after a reload to poison assembleContext. See
+// withoutEmptyAssistantMessages for why that matters.
 function commit(set: (partial: Partial<StoreState>) => void, canvas: Canvas) {
-  saveCanvas(canvas)
+  saveCanvas(withoutEmptyAssistantMessages(canvas))
   set({ canvas })
 }
 
@@ -57,9 +67,12 @@ export const useStore = create<StoreState>((set, get) => ({
     return id
   },
 
+  // Non-persisting on purpose. This writes the empty placeholder the streamed
+  // tokens accumulate into; if the tab closed mid-stream while it was in
+  // storage, the next send in that thread would 400 forever.
   startAssistantMessage: (threadId) => {
     const id = newId('msg')
-    commit(set, appendMessage(get().canvas, threadId, { id, role: 'assistant', content: '', createdAt: Date.now() }))
+    commitLocal(set, appendMessage(get().canvas, threadId, { id, role: 'assistant', content: '', createdAt: Date.now() }))
     return id
   },
 
@@ -67,6 +80,12 @@ export const useStore = create<StoreState>((set, get) => ({
     const thread = getThread(get().canvas, threadId)
     const current = thread.messages.find((m) => m.id === messageId)?.content ?? ''
     commitLocal(set, replaceMessage(get().canvas, threadId, messageId, current + delta))
+  },
+
+  // Attaches the error beside the message rather than inside its content, so it
+  // stays visible to the user without becoming assistant context on the next turn.
+  failMessage: (threadId, messageId, error) => {
+    commit(set, setMessageError(get().canvas, threadId, messageId, error))
   },
 
   branch: (parentThreadId, branchPointMessageId, quotedText = null) => {
@@ -85,19 +104,42 @@ export const useStore = create<StoreState>((set, get) => ({
     const { apiKey } = get()
     if (!apiKey) return
     get().addUserMessage(threadId, content)
-    const context = assembleContext(get().canvas, threadId)
-    const assistantId = get().startAssistantMessage(threadId)
-    await streamMessage(
-      { apiKey, messages: context },
-      {
-        onText: (delta) => get().appendToMessage(threadId, assistantId, delta),
-        onDone: () => { commit(set, get().canvas) },
-        onError: (message) => {
-          get().appendToMessage(threadId, assistantId, `\n\n⚠️ ${message}`)
-          commit(set, get().canvas)
+
+    // Nothing awaits sendMessage — ThreadNode fires and forgets — so an escaping
+    // throw becomes an unhandled rejection and the user just sees their message
+    // sent with no reply and no explanation. Every failure, whether it comes
+    // from assembleContext or from the stream, lands on the same visible path,
+    // exactly once.
+    let assistantId: string | null = null
+    let settled = false
+    const fail = (message: string) => {
+      if (settled) return
+      settled = true
+      if (assistantId === null) assistantId = get().startAssistantMessage(threadId)
+      get().failMessage(threadId, assistantId, message)
+    }
+
+    try {
+      // Assemble BEFORE the placeholder exists, so the empty assistant message
+      // is never part of the payload.
+      const context = assembleContext(get().canvas, threadId)
+      const id = get().startAssistantMessage(threadId)
+      assistantId = id
+      await streamMessage(
+        { apiKey, messages: context },
+        {
+          onText: (delta) => get().appendToMessage(threadId, id, delta),
+          onDone: () => {
+            if (settled) return
+            settled = true
+            commit(set, get().canvas)
+          },
+          onError: fail,
         },
-      },
-    )
+      )
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err))
+    }
   },
 
   replaceCanvas: (canvas) => commit(set, canvas),

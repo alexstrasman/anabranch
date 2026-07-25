@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import type { Message } from './types'
-import { emptyCanvas, appendMessage, replaceMessage, branchFromMessage, moveThread } from './thread'
+import {
+  emptyCanvas, appendMessage, replaceMessage, branchFromMessage, moveThread,
+  setMessageError, withoutEmptyAssistantMessages,
+} from './thread'
 
 const m = (id: string, content: string): Message => ({ id, role: 'user', content, createdAt: 0 })
 
@@ -28,6 +31,43 @@ describe('replaceMessage', () => {
     c = appendMessage(c, 'root', { id: 'a1', role: 'assistant', content: '', createdAt: 0 })
     c = replaceMessage(c, 'root', 'a1', 'streamed text')
     expect(c.threads[0].messages[0].content).toBe('streamed text')
+  })
+})
+
+describe('setMessageError', () => {
+  it('attaches the error beside the message, leaving content untouched', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', { id: 'a1', role: 'assistant', content: 'partial', createdAt: 0 })
+    c = setMessageError(c, 'root', 'a1', 'Rate limit hit.')
+    expect(c.threads[0].messages[0]).toMatchObject({ content: 'partial', error: 'Rate limit hit.' })
+  })
+})
+
+describe('withoutEmptyAssistantMessages', () => {
+  it('drops zero-length assistant messages and keeps everything else', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', m('u1', 'hi'))                                        // user, kept
+    c = appendMessage(c, 'root', { id: 'a1', role: 'assistant', content: '', createdAt: 0 })
+    c = appendMessage(c, 'root', { id: 'a2', role: 'assistant', content: 'ok', createdAt: 0 })
+    expect(withoutEmptyAssistantMessages(c).threads[0].messages.map((x) => x.id)).toEqual(['u1', 'a2'])
+  })
+  it('drops an empty assistant message even when it carries an error', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', { id: 'a1', role: 'assistant', content: '', createdAt: 0, error: 'boom' })
+    // The error is transient UI feedback; persisting the empty message to keep
+    // it would recreate the exact 400 this function exists to prevent.
+    expect(withoutEmptyAssistantMessages(c).threads[0].messages).toEqual([])
+  })
+  it('never drops an empty USER message', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', m('u1', ''))
+    expect(withoutEmptyAssistantMessages(c).threads[0].messages).toHaveLength(1)
+  })
+  it('does not mutate the input', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', { id: 'a1', role: 'assistant', content: '', createdAt: 0 })
+    withoutEmptyAssistantMessages(c)
+    expect(c.threads[0].messages).toHaveLength(1)
   })
 })
 
