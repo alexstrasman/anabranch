@@ -25,4 +25,11 @@ export interface Canvas {
 
 export const CANVAS_VERSION = 1
 export const DEFAULT_MODEL = 'claude-sonnet-5'  // Anthropic-only per scope; single constant, no abstraction
-export const MAX_TOKENS = 4096
+
+// max_tokens is a hard cap on TOTAL output. 4096 was tight even for a plain
+// conversational reply, and would truncate a long one mid-sentence. 16384 is
+// roughly a 12,000-word ceiling — far more than any thread-node turn needs,
+// so it never binds in practice, while still bounding a runaway response.
+// (claude-sonnet-5 allows up to 128k; we stream, so there is no HTTP-timeout
+// reason to stay low, but a chat column has no use for that headroom.)
+export const MAX_TOKENS = 16384

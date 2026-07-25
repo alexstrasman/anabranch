@@ -30,6 +30,16 @@ export async function streamMessage(
         model: opts.model ?? DEFAULT_MODEL,
         max_tokens: MAX_TOKENS,
         stream: true,
+        // Do NOT remove. On claude-sonnet-5, OMITTING `thinking` runs adaptive
+        // thinking — a silent default change from Sonnet 4.6, which ran with
+        // thinking off. Adaptive at the default `high` effort spends from the
+        // same max_tokens budget as the visible reply, and thinking blocks
+        // stream with empty text (display defaults to "omitted"), so the user
+        // gets a long silent pause and then a truncated or empty answer.
+        // Phase A is a plain chat/branching surface with no use for visible
+        // reasoning, so we turn it off explicitly. `{type:'disabled'}` is
+        // accepted on claude-sonnet-5.
+        thinking: { type: 'disabled' },
         messages: opts.messages.map((m) => ({ role: m.role, content: m.content })),
       }),
     })
