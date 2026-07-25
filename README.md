@@ -1,4 +1,4 @@
-# Tangent
+# Anabranch
 
 An AI conversation on an infinite canvas. Each node is a thread; branch a new
 thread from any message. Bring your own Anthropic API key — it is stored only in
