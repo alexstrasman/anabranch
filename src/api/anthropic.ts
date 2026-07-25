@@ -48,6 +48,22 @@ export async function streamMessage(
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
+
+  // Dispatch a batch of complete SSE lines.
+  // 'terminal' — a done/error event fired; the caller must stop immediately and
+  //              must not call any further handler (exactly-once contract).
+  // 'events'   — only non-terminal events fired (text deltas).
+  // 'none'     — the lines produced no events at all.
+  const dispatch = (lines: string[]): 'terminal' | 'events' | 'none' => {
+    const events = parseSSELines(lines)
+    for (const event of events) {
+      if (event.type === 'text') handlers.onText(event.text)
+      else if (event.type === 'error') { handlers.onError(event.message); return 'terminal' }
+      else if (event.type === 'done') { handlers.onDone(); return 'terminal' }
+    }
+    return events.length > 0 ? 'events' : 'none'
+  }
+
   try {
     for (;;) {
       const { done, value } = await reader.read()
@@ -55,11 +71,15 @@ export async function streamMessage(
       buffer += decoder.decode(value, { stream: true })
       const parts = buffer.split('\n')
       buffer = parts.pop() ?? '' // keep the trailing partial line
-      for (const event of parseSSELines(parts)) {
-        if (event.type === 'text') handlers.onText(event.text)
-        else if (event.type === 'error') { handlers.onError(event.message); return }
-        else if (event.type === 'done') { handlers.onDone(); return }
-      }
+      if (dispatch(parts) === 'terminal') return
+    }
+    // The connection ended without a terminal event. Flush the decoder's held
+    // multi-byte remainder, then the trailing partial line, before deciding.
+    buffer += decoder.decode()
+    if (buffer.trim() && dispatch([buffer]) === 'none') {
+      // Leftover bytes that parsed into nothing: a half-written SSE frame.
+      handlers.onError('The response was cut off before it finished. Try sending it again.')
+      return
     }
     handlers.onDone()
   } catch (err) {
