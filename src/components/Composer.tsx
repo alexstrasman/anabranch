@@ -14,10 +14,31 @@ export function Composer({ onSend }: { onSend: (text: string) => void }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={2}
-        style={{ flex: 1, resize: 'none' }}
+        style={{
+          flex: 1,
+          resize: 'none',
+          background: '#2a2a2a',
+          color: '#f0f0f0',
+          border: '1px solid #4a4a4a',
+          borderRadius: 3,
+          padding: 4,
+          font: 'inherit',
+        }}
         placeholder="Message…"
       />
-      <button onClick={send}>Send</button>
+      <button
+        onClick={send}
+        style={{
+          background: '#2a2a2a',
+          color: '#f0f0f0',
+          border: '1px solid #4a4a4a',
+          borderRadius: 3,
+          padding: '0 10px',
+          cursor: 'pointer',
+        }}
+      >
+        Send
+      </button>
     </div>
   )
 }
