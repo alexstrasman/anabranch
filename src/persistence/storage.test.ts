@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { emptyCanvas } from '../domain/thread'
+import { emptyCanvas, appendMessage } from '../domain/thread'
 import { saveCanvas, loadCanvas, saveApiKey, loadApiKey, clearApiKey } from './storage'
 
 beforeEach(() => localStorage.clear())
@@ -7,6 +7,17 @@ beforeEach(() => localStorage.clear())
 describe('canvas persistence', () => {
   it('round-trips a canvas through localStorage', () => {
     const c = emptyCanvas('root')
+    saveCanvas(c)
+    expect(loadCanvas()).toEqual(c)
+  })
+  it('round-trips a message carrying a delivery error', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', {
+      id: 'u1', role: 'user', content: 'q', createdAt: 1,
+    })
+    c = appendMessage(c, 'root', {
+      id: 'a1', role: 'assistant', content: 'partial', createdAt: 2, error: 'Rate limit hit.',
+    })
     saveCanvas(c)
     expect(loadCanvas()).toEqual(c)
   })

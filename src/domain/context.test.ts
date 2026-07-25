@@ -57,4 +57,24 @@ describe('assembleContext', () => {
   it('throws if the thread id does not exist', () => {
     expect(() => assembleContext(canvas, 'ghost')).toThrow(/not found/i)
   })
+  // A delivery error rides alongside a message so the user can see it. It must
+  // never reach the model — neither smuggled into `content` nor as a stray
+  // field on the payload — or every later turn in the thread, and every branch
+  // below it, is silently fed "⚠️ Rate limit hit" as assistant context.
+  it('never leaks a message error into what it sends to the model', () => {
+    const withError: Canvas = {
+      version: 1,
+      threads: [{
+        ...canvas.threads[0],
+        messages: [
+          msg('u1', 'user', 'one'),
+          { ...msg('a1', 'assistant', ''), error: 'Rate limit hit. Wait a moment and retry.' },
+        ],
+      }],
+    }
+    const assembled = assembleContext(withError, 'root')
+    expect(assembled.map((m) => m.content)).toEqual(['one', ''])
+    expect(assembled.every((m) => !('error' in m))).toBe(true)
+    expect(JSON.stringify(assembled)).not.toMatch(/rate limit/i)
+  })
 })

@@ -14,6 +14,15 @@ describe('import/export round trip', () => {
     const c = sample()
     expect(importCanvas(exportCanvas(c))).toEqual(c)
   })
+  it('round-trips a message carrying a delivery error', () => {
+    let c = emptyCanvas('root')
+    c = appendMessage(c, 'root', {
+      id: 'a1', role: 'assistant', content: 'partial', createdAt: 1, error: 'Rate limit hit.',
+    })
+    const back = importCanvas(exportCanvas(c))
+    expect(back).toEqual(c)
+    expect(back.threads[0].messages[0].error).toBe('Rate limit hit.')
+  })
   it('rejects non-JSON', () => {
     expect(() => importCanvas('{nope')).toThrow()
   })

@@ -29,6 +29,16 @@ export function replaceMessage(
   }))
 }
 
+/** Attaches a delivery error to a message without touching its `content`. */
+export function setMessageError(
+  canvas: Canvas, threadId: string, messageId: string, error: string,
+): Canvas {
+  return mapThread(canvas, threadId, (t) => ({
+    ...t,
+    messages: t.messages.map((msg) => (msg.id === messageId ? { ...msg, error } : msg)),
+  }))
+}
+
 export function branchFromMessage(
   canvas: Canvas,
   parentThreadId: string,

@@ -18,6 +18,15 @@ export function ancestorChain(canvas: Canvas, threadId: string): Thread[] {
 }
 
 /**
+ * Drops `error` on the way out. A delivery error is UI state that happens to be
+ * stored next to a message; it is not something the assistant said, and it must
+ * never reach the model as context.
+ */
+function forModel(m: Message): Message {
+  return { id: m.id, role: m.role, content: m.content, createdAt: m.createdAt }
+}
+
+/**
  * The messages to send to the model for `threadId`:
  * every ancestor's messages truncated at the branch point its child sprang from,
  * concatenated root-first, then the thread's own messages.
@@ -28,7 +37,7 @@ export function assembleContext(canvas: Canvas, threadId: string): Message[] {
   for (let i = 0; i < chain.length; i++) {
     const thread = chain[i]
     if (i === chain.length - 1) {
-      result.push(...thread.messages)
+      result.push(...thread.messages.map(forModel))
       continue
     }
     const branchPoint = chain[i + 1].branchPointMessageId
@@ -36,7 +45,7 @@ export function assembleContext(canvas: Canvas, threadId: string): Message[] {
     if (idx === -1) {
       throw new Error(`Branch point ${branchPoint} not found in thread ${thread.id}`)
     }
-    result.push(...thread.messages.slice(0, idx + 1))
+    result.push(...thread.messages.slice(0, idx + 1).map(forModel))
   }
   return result
 }

@@ -5,6 +5,13 @@ export interface Message {
   role: Role
   content: string
   createdAt: number
+  // A delivery failure that happened while producing THIS message — rate limit,
+  // bad key, dropped connection. It rides alongside the message so the user can
+  // see it, and is deliberately NOT part of `content`: assembleContext walks the
+  // ancestor chain, so error text inside `content` would become genuine
+  // assistant context on every later turn in the thread and every branch below
+  // it. Optional so canvases written before this field load unchanged.
+  error?: string
 }
 
 export interface Thread {
