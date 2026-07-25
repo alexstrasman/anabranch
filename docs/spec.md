@@ -1,4 +1,4 @@
-# Proof artifact one: Tangent (design)
+# Proof artifact one: Anabranch (design)
 
 Drafted 24 July 2026. This closes phase 2 of the launch roadmap: artifact one is
 chosen, scoped, and specced. It records the decision trail so the ideas that
@@ -7,16 +7,20 @@ that phase 3 can start building without reopening scope.
 
 ## The decision
 
-Artifact one is **Tangent** (working title): a web app where an AI conversation
-lives on an infinite canvas instead of a scrolling column, and a new thread can
-be branched from any message, or from a selected line of text inside a message,
-with every branch visible and navigable as a node graph.
+Artifact one is **Anabranch**: a web app where an AI conversation lives on an
+infinite canvas instead of a scrolling column, and a new thread can be branched
+from any message, or from a selected line of text inside a message, with every
+branch visible and navigable as a node graph.
 
 The one-sentence proof it carries: a designer who ships product, an
 opinionated, polished, working tool in the exact space his buyers live in
 daily, built in public with the agents it's built for.
 
-The working title is changeable and gates nothing.
+The name is settled: **Anabranch**, chosen 25 July 2026 after the collision
+check the risks list below called for. It replaced the working title Tangent.
+An anabranch is a river channel that leaves the main stem and rejoins it
+downstream — divergence, and the eventual reconvergence that merging threads
+would one day be.
 
 ## Why this one, and what got banked
 
@@ -25,7 +29,7 @@ underneath and motion as the garnish (the B-then-C-then-A craft signature);
 open about the agent-assisted workflow but centered on design judgment; and
 30-40 hours of protected time with something publicly live by hour 10-15.
 
-Tangent won on motivation, ownership, and adjacency. A thing made beats a
+Anabranch won on motivation, ownership, and adjacency. A thing made beats a
 thing improved on the future Fold site and in the human-story thread. The
 canvas plays to a real pull toward editor-grade interaction surfaces. And in
 2026 the buyer lives in agent workflows daily, so product thinking applied to
@@ -52,7 +56,7 @@ Banked candidates, in order of strength, for artifact two and beyond:
   is literally Friendly's move, so the framing must be Alex's own, not an echo.
 - **Design mode for OBS.** Dead as an artifact (wrong audience, hostile
   C++/Qt terrain, multi-hundred-hour genre), but it flagged the pull toward
-  canvas and direct-manipulation surfaces that Tangent now serves.
+  canvas and direct-manipulation surfaces that Anabranch now serves.
 
 ## The scope contract
 
@@ -170,8 +174,14 @@ same conversation as a wall of linear text versus a navigable canvas.
 - Momentum at 5 hours a week is the roadmap's named risk. The skeleton gate
   at hour 10-15 exists to put a live URL in the bio early; if the skeleton
   slips past hour 20, cut scope, not the gate.
-- The name. Tangent is a working title; check handle and domain availability
-  before the first public post, and rename cheaply then if needed, not later.
+- ~~The name.~~ **Closed 25 July 2026.** The check ran before the first public
+  post and forced a rename: an existing branching-AI-chat project already held
+  the name Tangent. Thirty-one alternatives across four naming lanes were
+  checked for collision and subdomain availability; the artifact is now
+  **Anabranch**, and the skeleton gate deploys to `anabranch.vercel.app`
+  (confirmed free 25 July 2026). No domain purchased and no
+  handle created — posts go out from Alex's own account, per the artifact-not-
+  startup rule. Full trail: `docs/superpowers/specs/2026-07-25-name-decision.md`.
 - Crowded space. Branching-chat tools exist and more will appear mid-build.
   Irrelevant to an artifact whose job is proof and point of view; the spec
   records this so mid-build discouragement doesn't reopen the decision.

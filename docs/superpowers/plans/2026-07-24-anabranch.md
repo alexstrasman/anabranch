@@ -1,16 +1,16 @@
-# Tangent Implementation Plan
+# Anabranch Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build Tangent — a client-only web app where an AI conversation lives on an infinite canvas as a graph of thread-nodes, with any message branchable into a new thread — walking-skeleton-first, then deepened over six themed weeks.
+**Goal:** Build Anabranch — a client-only web app where an AI conversation lives on an infinite canvas as a graph of thread-nodes, with any message branchable into a new thread — walking-skeleton-first, then deepened over six themed weeks.
 
 **Architecture:** A static React/Vite/TypeScript SPA. React Flow (`@xyflow/react`) supplies canvas mechanics (pan, zoom, nodes, edges). All conversation logic lives in a pure, framework-free `domain/` layer (the only genuinely algorithmic piece is context assembly — a walk up the branch tree). A thin zustand store wires the pure layer to React and to persistence. The Anthropic API is called browser-direct with streaming; there is no server and no database.
 
 **Tech Stack:** React 18, Vite 5, TypeScript 5, `@xyflow/react` (React Flow 12), zustand, **Tailwind (v4) + shadcn/ui** for the component/chrome layer and design tokens, Vitest + happy-dom for the unit tests the spec mandates. Deployed on Vercel.
 
-**On shadcn/ui:** shadcn is not a runtime dependency — its components are copied into `src/components/ui/` as plain React + Tailwind + Radix, owned and edited in-repo. Its CSS-variable theming *is* the design-token system, which is why Theme 1 ("the system underneath") becomes *customising* that token layer into Tangent's own rather than hand-rolling one from scratch. shadcn covers the **chrome around the canvas** (composer, key entry, toolbar, model selector, alerts, chips); the canvas surface and the thread-node body stay hand-built on React Flow.
+**On shadcn/ui:** shadcn is not a runtime dependency — its components are copied into `src/components/ui/` as plain React + Tailwind + Radix, owned and edited in-repo. Its CSS-variable theming *is* the design-token system, which is why Theme 1 ("the system underneath") becomes *customising* that token layer into Anabranch's own rather than hand-rolling one from scratch. shadcn covers the **chrome around the canvas** (composer, key entry, toolbar, model selector, alerts, chips); the canvas surface and the thread-node body stay hand-built on React Flow.
 
-**Sequencing:** Tailwind + shadcn are installed in the scaffold (Task 1) so the tooling and the token layer exist from day one and nothing has to be retrofitted. The Phase A skeleton stays deliberately plain — "ugly is acceptable" — and may use raw controls where that is faster. Theme 1 (Tasks 14–15) is where the chrome is formalised onto shadcn primitives and the tokens are tuned into Tangent's own system; that default-shadcn → Tangent-system shift is exactly the theme's before/after.
+**Sequencing:** Tailwind + shadcn are installed in the scaffold (Task 1) so the tooling and the token layer exist from day one and nothing has to be retrofitted. The Phase A skeleton stays deliberately plain — "ugly is acceptable" — and may use raw controls where that is faster. Theme 1 (Tasks 14–15) is where the chrome is formalised onto shadcn primitives and the tokens are tuned into Anabranch's own system; that default-shadcn → Anabranch-system shift is exactly the theme's before/after.
 
 ## Global Constraints
 
@@ -40,7 +40,7 @@ Every UI task lists its manual verification as concrete, observable steps so a r
 ## File Structure
 
 ```
-tangent/
+anabranch/
 ├── index.html
 ├── package.json
 ├── tsconfig.json
@@ -161,7 +161,7 @@ Expected: FAIL — `vitest: command not found` / no config (dependencies not ins
 `package.json`:
 ```json
 {
-  "name": "tangent",
+  "name": "anabranch",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -247,7 +247,7 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tangent</title>
+    <title>Anabranch</title>
   </head>
   <body>
     <div id="root"></div>
@@ -259,7 +259,7 @@ export default defineConfig({
 `src/App.tsx`:
 ```tsx
 export default function App() {
-  return <div>Tangent</div>
+  return <div>Anabranch</div>
 }
 ```
 
@@ -383,7 +383,7 @@ Add the primitives the plan uses (copies their source into `src/components/ui/`)
 ```bash
 npx shadcn@latest add button textarea input card alert badge select dropdown-menu tooltip
 ```
-Apply the dark theme by adding `class="dark"` to `<html>` in `index.html` (Tangent ships dark; Theme 1 refines the palette).
+Apply the dark theme by adding `class="dark"` to `<html>` in `index.html` (Anabranch ships dark; Theme 1 refines the palette).
 
 - [ ] **Step 4: Install and verify the test passes**
 
@@ -732,7 +732,7 @@ describe('canvas persistence', () => {
     expect(loadCanvas()).toBeNull()
   })
   it('returns null (does not throw) on corrupt data', () => {
-    localStorage.setItem('tangent:canvas:v1', '{not json')
+    localStorage.setItem('anabranch:canvas:v1', '{not json')
     expect(loadCanvas()).toBeNull()
   })
 })
@@ -757,8 +757,8 @@ Expected: FAIL — module not found.
 ```typescript
 import type { Canvas } from '../domain/types'
 
-const CANVAS_KEY = 'tangent:canvas:v1'
-const API_KEY = 'tangent:apiKey'
+const CANVAS_KEY = 'anabranch:canvas:v1'
+const API_KEY = 'anabranch:apiKey'
 
 export function saveCanvas(canvas: Canvas): void {
   localStorage.setItem(CANVAS_KEY, JSON.stringify(canvas))
@@ -1225,7 +1225,7 @@ describe('store — pure actions', () => {
   it('persists after a mutation', () => {
     const rootId = useStore.getState().canvas.threads[0].id
     useStore.getState().addUserMessage(rootId, 'saved?')
-    expect(localStorage.getItem('tangent:canvas:v1')).toContain('saved?')
+    expect(localStorage.getItem('anabranch:canvas:v1')).toContain('saved?')
   })
 })
 ```
@@ -1553,7 +1553,7 @@ export function KeyEntry() {
   const [value, setValue] = useState('')
   return (
     <div style={{ maxWidth: 420, margin: '15vh auto', fontFamily: 'system-ui' }}>
-      <h1>Tangent</h1>
+      <h1>Anabranch</h1>
       <p>Paste an Anthropic API key to begin.</p>
       <input
         type="password"
@@ -1596,7 +1596,7 @@ Confirm, observably:
 1. With no stored key, the KeyEntry gate shows. Entering a real key reveals the canvas.
 2. Type a message, Send: an assistant message appears and **streams in token-by-token** (not all at once).
 3. Refresh: the key is still set (no gate) and the conversation persists.
-4. Temporarily enter a bad key in localStorage (`tangent:apiKey`) and send: the assistant message shows a `⚠️` error line (not a silent hang, not an uncaught console error).
+4. Temporarily enter a bad key in localStorage (`anabranch:apiKey`) and send: the assistant message shows a `⚠️` error line (not a silent hang, not an uncaught console error).
 
 - [ ] **Step 4: Commit**
 
@@ -1651,8 +1651,12 @@ Deliverable: a public live URL. Per the spec, "if the skeleton slips past hour 2
 
 - [ ] **Step 2: Create `README.md`**
 
+> **Rename note (25 July 2026):** the heading must read `# Anabranch`. The first
+> pass of this step wrote `# Tangent`, and the follow-up rename commit missed
+> both `README.md` and the `name` field in `package-lock.json`. Check both.
+
 ```markdown
-# Tangent
+# Anabranch
 
 An AI conversation on an infinite canvas. Each node is a thread; branch a new
 thread from any message. Bring your own Anthropic API key — it is stored only in
@@ -1678,6 +1682,14 @@ git commit -m "chore: vercel config and readme"
 git push -u origin HEAD
 ```
 Then, in Vercel: import the repo, accept the detected Vite settings, deploy.
+
+**Name the Vercel project `anabranch`** so the production URL is
+`anabranch.vercel.app` (verified free on 25 July 2026). This matters more than
+it looks: the project name *is* the public URL, it goes straight into the
+build-in-public bio, and renaming the project later changes the URL and breaks
+every link already posted. If Vercel appends a suffix, the name was taken in
+the interim — stop and pick a variant before deploying rather than shipping a
+`anabranch-a1b2c3.vercel.app` URL.
 
 - [ ] **Step 4: Manual verification (the gate)**
 
@@ -1724,26 +1736,26 @@ No commit needed — nothing changes here.
 
 > Tokens, type scale, spacing; the node, edge, and composer components rebuilt on it. This is the B-then-C-then-A craft signature made concrete: a real system under the surface.
 
-### Task 14: Make the token layer Tangent's own
+### Task 14: Make the token layer Anabranch's own
 
-The skeleton already runs on shadcn's default CSS-variable tokens (Task 1, Step 3b). This task is where the before/after lives: replace shadcn's neutral defaults with **Tangent's palette**, add an explicit **type scale** and **spacing rhythm**, and pin the surfaces the thread-node uses. Everything downstream reads these tokens — no hardcoded colours or sizes after this task.
+The skeleton already runs on shadcn's default CSS-variable tokens (Task 1, Step 3b). This task is where the before/after lives: replace shadcn's neutral defaults with **Anabranch's palette**, add an explicit **type scale** and **spacing rhythm**, and pin the surfaces the thread-node uses. Everything downstream reads these tokens — no hardcoded colours or sizes after this task.
 
 **Files:**
 - Modify: `src/index.css` (the shadcn token layer + `@theme`)
 
 **Interfaces:**
-- Produces: a customised `.dark` palette (Tangent's accent, tuned surfaces), plus additional `@theme` tokens for the type scale (`--text-*`), a message-role colour pair (`--color-user`, `--color-assistant`), and a canvas surface (`--color-canvas`). All consumed as Tailwind utilities (`bg-card`, `text-user`, `text-sm`, etc.) via the `@theme inline` mapping.
+- Produces: a customised `.dark` palette (Anabranch's accent, tuned surfaces), plus additional `@theme` tokens for the type scale (`--text-*`), a message-role colour pair (`--color-user`, `--color-assistant`), and a canvas surface (`--color-canvas`). All consumed as Tailwind utilities (`bg-card`, `text-user`, `text-sm`, etc.) via the `@theme inline` mapping.
 
 - [ ] **Step 1: Customise the palette and add scale tokens in `src/index.css`**
 
-Edit the `.dark` block with Tangent's palette (accent + tuned surfaces) and extend `@theme inline` with the type scale, role colours, and canvas surface:
+Edit the `.dark` block with Anabranch's palette (accent + tuned surfaces) and extend `@theme inline` with the type scale, role colours, and canvas surface:
 ```css
 .dark {
   --background: oklch(0.17 0.01 260);      /* deep slate canvas backdrop */
   --foreground: oklch(0.93 0.01 260);
   --card: oklch(0.21 0.012 260);           /* thread-node surface */
   --card-foreground: oklch(0.93 0.01 260);
-  --primary: oklch(0.72 0.13 265);         /* Tangent accent (branch blue) */
+  --primary: oklch(0.72 0.13 265);         /* Anabranch accent (branch blue) */
   --primary-foreground: oklch(0.17 0.01 260);
   --muted: oklch(0.27 0.012 260);
   --muted-foreground: oklch(0.68 0.02 260);
@@ -1772,13 +1784,13 @@ Edit the `.dark` block with Tangent's palette (accent + tuned surfaces) and exte
 
 - [ ] **Step 2: Manual verification**
 
-Run `npm run dev`: the whole app shifts to Tangent's palette (accent, surfaces, message-role colours). The shadcn primitives (buttons, inputs) pick up the new accent automatically because they reference the same tokens.
+Run `npm run dev`: the whole app shifts to Anabranch's palette (accent, surfaces, message-role colours). The shadcn primitives (buttons, inputs) pick up the new accent automatically because they reference the same tokens.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add src/index.css
-git commit -m "feat(design): customise shadcn tokens into Tangent's system"
+git commit -m "feat(design): customise shadcn tokens into Anabranch's system"
 ```
 
 ---
@@ -1839,7 +1851,7 @@ export function Composer({ onSend }: { onSend: (text: string) => void }) {
 
 - [ ] **Step 5: Manual verification (before/after shot)**
 
-Run `npm run dev`. The node, composer, messages, edges, and shadcn chrome now read as one system. Capture the before/after (default-shadcn skeleton vs. Tangent's system) — this is the theme's post.
+Run `npm run dev`. The node, composer, messages, edges, and shadcn chrome now read as one system. Capture the before/after (default-shadcn skeleton vs. Anabranch's system) — this is the theme's post.
 
 - [ ] **Step 6: Commit**
 
@@ -1988,7 +2000,7 @@ Add `streamingThreadId: string | null` to state. In `sendMessage`: `set({ stream
 
 - [ ] **Step 2: KeyEntry as a designed moment**
 
-Restyle `KeyEntry.tsx` using the shadcn `Card`, `Input`, and `Button` primitives on Tangent's tokens: a centred `Card` (`bg-card`), product one-liner ("An AI conversation on an infinite canvas"), the key `Input`, the privacy line (already present, keep verbatim), and a "Try the sample instead" affordance stub (a `Button variant="ghost"`, wired in Task 24). No new logic beyond the sample stub calling a passed `onTrySample` (optional prop, unused until Task 24).
+Restyle `KeyEntry.tsx` using the shadcn `Card`, `Input`, and `Button` primitives on Anabranch's tokens: a centred `Card` (`bg-card`), product one-liner ("An AI conversation on an infinite canvas"), the key `Input`, the privacy line (already present, keep verbatim), and a "Try the sample instead" affordance stub (a `Button variant="ghost"`, wired in Task 24). No new logic beyond the sample stub calling a passed `onTrySample` (optional prop, unused until Task 24).
 
 - [ ] **Step 3: Empty + streaming states in `ThreadNode.tsx`**
 
@@ -2257,7 +2269,7 @@ git commit -m "feat: keyboard flow — cmd+enter, node navigation, quick-branch"
 
 **Interfaces:**
 - Consumes: `exportCanvas`, `importCanvas` (Task 5), `store.canvas`, `store.replaceCanvas`.
-- Produces: `Toolbar` with Export (downloads `tangent-canvas.json` via a Blob + object URL) and Import (file input → `importCanvas` → `replaceCanvas`, with a caught error surfaced to the user).
+- Produces: `Toolbar` with Export (downloads `anabranch-canvas.json` via a Blob + object URL) and Import (file input → `importCanvas` → `replaceCanvas`, with a caught error surfaced to the user).
 
 - [ ] **Step 1: Implement `src/components/Toolbar.tsx`**
 
@@ -2276,7 +2288,7 @@ export function Toolbar() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'tangent-canvas.json'
+    a.download = 'anabranch-canvas.json'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -2356,7 +2368,7 @@ git commit -m "feat: sample canvas so keyless visitors can touch the tool"
 
 ```html
 <meta name="description" content="An AI conversation on an infinite canvas. Branch any message into a new thread." />
-<meta property="og:title" content="Tangent" />
+<meta property="og:title" content="Anabranch" />
 <meta property="og:description" content="An AI conversation on an infinite canvas. Branch any message into a new thread." />
 <meta property="og:image" content="/og.png" />
 <meta property="og:type" content="website" />
@@ -2397,7 +2409,7 @@ git push --tags
 | Browser-direct Anthropic key, `anthropic-dangerous-direct-browser-access`, streaming | 7, 10 |
 | "Key never leaves your browser except to Anthropic" copy | 10, 18 |
 | Anthropic-only, no provider abstraction | 7 (`DEFAULT_MODEL` constant; optional `model` param is a defaulted hook, not an abstraction) |
-| Design system (shadcn/ui + Tailwind, customisable) | 1 (install), 14–15 (customise into Tangent's tokens) |
+| Design system (shadcn/ui + Tailwind, customisable) | 1 (install), 14–15 (customise into Anabranch's tokens) |
 | localStorage persistence | 4, 8 |
 | JSON export/import | 5, 23 |
 | Walking skeleton live by hour 10–15 (the gate) | 1–12 |
