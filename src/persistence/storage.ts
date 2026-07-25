@@ -29,9 +29,12 @@ export function saveCanvas(canvas: Canvas): void {
  * canvas instead of a permanent white screen.
  */
 export function loadCanvas(): Canvas | null {
-  const raw = localStorage.getItem(CANVAS_KEY)
-  if (!raw) return null
   try {
+    // getItem is inside the try too: some browsers make localStorage itself
+    // throw on access (Safari private browsing, storage disabled by policy).
+    // This function must never throw — initCanvas has no other fallback.
+    const raw = localStorage.getItem(CANVAS_KEY)
+    if (!raw) return null
     return validateCanvas(JSON.parse(raw))
   } catch {
     return null
@@ -43,9 +46,17 @@ export function saveApiKey(key: string): void {
 }
 
 export function loadApiKey(): string | null {
-  return localStorage.getItem(API_KEY)
+  try {
+    return localStorage.getItem(API_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function clearApiKey(): void {
-  localStorage.removeItem(API_KEY)
+  try {
+    localStorage.removeItem(API_KEY)
+  } catch {
+    // Nothing to do: the caller has already dropped the key from memory.
+  }
 }
