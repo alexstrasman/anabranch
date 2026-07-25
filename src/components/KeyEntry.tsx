@@ -10,7 +10,7 @@ export function KeyEntry() {
   }
   return (
     <div style={{ maxWidth: 420, margin: '15vh auto', fontFamily: 'system-ui' }}>
-      <h1>Tangent</h1>
+      <h1>Anabranch</h1>
       <p id="key-entry-hint">Paste an Anthropic API key to begin.</p>
       <input
         id="api-key"

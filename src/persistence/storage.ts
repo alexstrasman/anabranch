@@ -1,8 +1,8 @@
 import type { Canvas } from '../domain/types'
 import { validateCanvas } from './validate'
 
-const CANVAS_KEY = 'tangent:canvas:v1'
-const API_KEY = 'tangent:apiKey'
+const CANVAS_KEY = 'anabranch:canvas:v1'
+const API_KEY = 'anabranch:apiKey'
 
 // localStorage.setItem throws on quota exhaustion and in Safari private
 // browsing, where the whole store is unavailable. The first canvas write
@@ -15,7 +15,7 @@ function writeItem(key: string, value: string): void {
   try {
     localStorage.setItem(key, value)
   } catch (err) {
-    console.warn(`Tangent: could not persist "${key}" — continuing in memory only.`, err)
+    console.warn(`Anabranch: could not persist "${key}" — continuing in memory only.`, err)
   }
 }
 

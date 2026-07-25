@@ -35,6 +35,6 @@ describe('store — pure actions', () => {
   it('persists after a mutation', () => {
     const rootId = useStore.getState().canvas.threads[0].id
     useStore.getState().addUserMessage(rootId, 'saved?')
-    expect(localStorage.getItem('tangent:canvas:v1')).toContain('saved?')
+    expect(localStorage.getItem('anabranch:canvas:v1')).toContain('saved?')
   })
 })
